@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Social Media</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background-color: #333; color: #fff; padding: 1rem; text-align: center; }
+        #login, #feed, #admin { display: none; padding: 1rem; }
+        .video-item { margin: 1rem 0; }
+        .video-item img { width: 100%; max-width: 300px; cursor: pointer; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Simple Social Media</h1>
+    </header>
+
+    <div id="login">
+        <h2>Login</h2>
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username">
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password">
+        </div>
+        <button onclick="login()">Login</button>
+        <p id="login-error" style="color: red;"></p>
+    </div>
+
+    <div id="feed">
+        <h2>Video Feed</h2>
+        <div id="video-list"></div>
+    </div>
+
+    <div id="admin">
+        <h2>Admin Panel</h2>
+        <form id="video-form">
+            <div class="form-group">
+                <label for="video-title">Video Title:</label>
+                <input type="text" id="video-title" required>
+            </div>
+            <div class="form-group">
+                <label for="video-url">Video URL:</label>
+                <input type="url" id="video-url" required>
+            </div>
+            <div class="form-group">
+                <label for="thumbnail-url">Thumbnail URL:</label>
+                <input type="url" id="thumbnail-url" required>
+            </div>
+            <button type="submit">Add Video</button>
+        </form>
+        <h3>Existing Videos</h3>
+        <div id="admin-video-list"></div>
+    </div>
+
+    <script>
+        const users = {
+            CrewFamily: "Cou$1ns!",
+            CrewGamesAdmin: "Jo30nly!"
+        };
+        const roles = {
+            CrewFamily: "user",
+            CrewGamesAdmin: "admin"
+        };
+
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const errorElem = document.getElementById("login-error");
+
+            if (users[username] === password) {
+                const role = roles[username];
+                if (role === "user") {
+                    document.getElementById("feed").style.display = "block";
+                    loadFeed();
+                } else if (role === "admin") {
+                    document.getElementById("admin").style.display = "block";
+                    loadAdminPanel();
+                }
+                document.getElementById("login").style.display = "none";
+            } else {
+                errorElem.textContent = "Invalid username or password.";
+            }
+        }
+
+        function loadFeed() {
+            const videoList = JSON.parse(localStorage.getItem("videos")) || [];
+            const videoListElem = document.getElementById("video-list");
+            videoListElem.innerHTML = "";
+
+            videoList.forEach(video => {
+                const videoElem = document.createElement("div");
+                videoElem.className = "video-item";
+                videoElem.innerHTML = `
+                    <img src="${video.thumbnail}" alt="${video.title}" onclick="watchVideo('${video.url}')">
+                    <h4>${video.title}</h4>
+                `;
+                videoListElem.appendChild(videoElem);
+            });
+        }
+
+        function watchVideo(url) {
+            window.open(url, "_blank");
+        }
+
+        function loadAdminPanel() {
+            const videoList = JSON.parse(localStorage.getItem("videos")) || [];
+            const adminVideoListElem = document.getElementById("admin-video-list");
+            adminVideoListElem.innerHTML = "";
+
+            videoList.forEach(video => {
+                const videoElem = document.createElement("div");
+                videoElem.className = "video-item";
+                videoElem.innerHTML = `
+                    <img src="${video.thumbnail}" alt="${video.title}">
+                    <h4>${video.title}</h4>
+                `;
+                adminVideoListElem.appendChild(videoElem);
+            });
+
+            document.getElementById("video-form").onsubmit = function (e) {
+                e.preventDefault();
+
+                const title = document.getElementById("video-title").value;
+                const url = document.getElementById("video-url").value;
+                const thumbnail = document.getElementById("thumbnail-url").value;
+
+                videoList.push({ title, url, thumbnail });
+                localStorage.setItem("videos", JSON.stringify(videoList));
+                loadAdminPanel();
+                alert("Video added successfully!");
+            };
+        }
+
+        document.getElementById("login").style.display = "block";
+    </script>
+</body>
+</html>
